@@ -1,7 +1,12 @@
 class Parser:
     def __init__(self, path):
         self.file = open(path, 'r')
-        self.commands = self.file.readlines()
+        self.originalCommands = self.file.readlines()
+        self.commands = self.originalCommands.copy()
+        self.currentCommand = None
+
+    def resetCommands(self):
+        self.commands = self.originalCommands.copy()
         self.currentCommand = None
     
     def hasMoreCommands(self):
@@ -14,7 +19,11 @@ class Parser:
         return False
     
     def commandType(self):
-        mostSignificantCharacter = self.currentCommand[0]
+        try:
+            mostSignificantCharacter = self.currentCommand.strip()[0]
+        except:
+            return None
+        #print("First char: ", mostSignificantCharacter)
         if mostSignificantCharacter == "@":
             return "A_COMMAND"
         elif mostSignificantCharacter == "(":
@@ -32,29 +41,38 @@ class Parser:
     def isA(self):
         return self.commandType() == "A_COMMAND"
     
+    def isL(self):
+        return self.commandType() == "L_COMMAND"
+
     def symbol(self):
+        command = self.currentCommand.split("/")[0]
         currentCommandType = self.commandType()
+        #print("SYMBOL", currentCommandType)
         if currentCommandType == "A_COMMAND":
-            return self.currentCommand[1:]
+            return command.strip().replace("@", "")
         elif currentCommandType == "L_COMMAND":
-            return self.currentCommand[1:-1]
+            symbol = command.strip().replace("(", "")
+            return symbol.replace(")", "").rstrip()
         return None
     
     def dest(self):
-        if "=" in self.currentCommand:
-            return self.currentCommand.split("=")[0]
+        command = self.currentCommand.split("/")[0]
+        if "=" in command:
+            return command.strip().split("=")[0]
         return None
     
     def comp(self):
+        command = self.currentCommand.split("/")[0]
         if "=" in self.currentCommand:
-            return self.currentCommand.split("=")[1]
+            return command.strip().split("=")[1]
         elif ";" in self.currentCommand:
-            return self.currentCommand.split(";")[0]
+            return command.strip().split(";")[0]
         return None
     
     def jump(self):
-        if ";" in self.currentCommand:
-            return self.currentCommand.split(";")[1]
+        command = self.currentCommand.split("/")[0]
+        if ";" in command:
+            return command.strip().split(";")[1]
         return None
 
     def close(self):

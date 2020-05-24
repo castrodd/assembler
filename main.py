@@ -1,41 +1,87 @@
 import sys
 from parser import Parser
 from code import Code
+from symbolTable import SymbolTable
 
-def output():
+def createOutputFile():
     currentFileName = sys.argv[1].split(".")[0]
     currentFileName = currentFileName.split("/")[-1]
     outputFileName = currentFileName + ".hack"
     return open(outputFileName, "x")
 
-def main():
+def generateSymbolTable(table, inputFile):
+    programCounter = 0
 
-    assembly = Parser(sys.argv[1])
-    binary = output()
-
-    while assembly.hasMoreCommands():
+    while inputFile.hasMoreCommands():
+        inputFile.advance()
+        #print(inputFile.currentCommand)
+        #print(inputFile.commandType())
+        if inputFile.isC() or inputFile.isA():
+            programCounter += 1
+        elif inputFile.isL():
+            symbol = inputFile.symbol()
+            table.addEntry(symbol, programCounter)
+        else:
+            pass
     
-        assembly.advance()
+    inputFile.resetCommands()
 
-        if assembly.isC():
-            comp = Code.comp(assembly.comp())
-            dest = Code.dest(assembly.dest())
-            jump = Code.jump(assembly.jump())
+def isNumber(symbol):
+    try:
+        float(symbol)
+        return True
+    except ValueError:
+        return False
+
+def writeToOutputFile(table, inputFile, outputFile):
+    currentROMAddress = 16
+
+    while inputFile.hasMoreCommands():
+        inputFile.advance()
+
+        if inputFile.isC():
+            comp = Code.comp(inputFile.comp())
+            dest = Code.dest(inputFile.dest())
+            jump = Code.jump(inputFile.jump())
 
             binaryLine = '111' + comp + dest + jump + '\n'
-            binary.write(binaryLine)
+            #print(binaryLine)
+            outputFile.write(binaryLine)
 
-        elif assembly.isA():
-            symbol ="{0:>015b}".format(int(assembly.symbol()))
+        elif inputFile.isA():
+            initialSymbol = inputFile.symbol()
+            if isNumber(initialSymbol):
+                address = initialSymbol
+            elif table.contains(initialSymbol):
+                address = table.getAddress(initialSymbol)
+            else:
+                address = currentROMAddress
+                table.addEntry(initialSymbol, address)
+                currentROMAddress += 1
+
+            symbol ="{0:>015b}".format(int(address))
             binaryLine = '0' + symbol + '\n'
-            binary.write(binaryLine)
+            #print(binaryLine)
+            outputFile.write(binaryLine)
         
         else:
-            continue
+            pass
+
+def closeFiles(inputFile, outputFile):
+    inputFile.close()
+    outputFile.close()
+
+def main():
+    inputFile = Parser(sys.argv[1])
+    outputFile = createOutputFile()
+    table = SymbolTable()
+
+    generateSymbolTable(table, inputFile)
+    #print(table.table)
+    writeToOutputFile(table, inputFile, outputFile)
     
-    assembly.close()
-    binary.close()
-    print("Assembler finished.")
+    closeFiles(inputFile, outputFile)
+    #print("Assembler finished.")
 
 if __name__ == "__main__":
     main()
