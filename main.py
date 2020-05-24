@@ -14,8 +14,6 @@ def generateSymbolTable(table, inputFile):
 
     while inputFile.hasMoreCommands():
         inputFile.advance()
-        #print(inputFile.currentCommand)
-        #print(inputFile.commandType())
         if inputFile.isC() or inputFile.isA():
             programCounter += 1
         elif inputFile.isL():
@@ -45,7 +43,6 @@ def writeToOutputFile(table, inputFile, outputFile):
             jump = Code.jump(inputFile.jump())
 
             binaryLine = '111' + comp + dest + jump + '\n'
-            #print(binaryLine)
             outputFile.write(binaryLine)
 
         elif inputFile.isA():
@@ -61,7 +58,6 @@ def writeToOutputFile(table, inputFile, outputFile):
 
             symbol ="{0:>015b}".format(int(address))
             binaryLine = '0' + symbol + '\n'
-            #print(binaryLine)
             outputFile.write(binaryLine)
         
         else:
@@ -77,11 +73,10 @@ def main():
     table = SymbolTable()
 
     generateSymbolTable(table, inputFile)
-    #print(table.table)
     writeToOutputFile(table, inputFile, outputFile)
     
     closeFiles(inputFile, outputFile)
-    #print("Assembler finished.")
+    print("Assembler finished.")
 
 if __name__ == "__main__":
     main()

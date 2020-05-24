@@ -23,7 +23,6 @@ class Parser:
             mostSignificantCharacter = self.currentCommand.strip()[0]
         except:
             return None
-        #print("First char: ", mostSignificantCharacter)
         if mostSignificantCharacter == "@":
             return "A_COMMAND"
         elif mostSignificantCharacter == "(":
@@ -47,7 +46,6 @@ class Parser:
     def symbol(self):
         command = self.currentCommand.split("/")[0]
         currentCommandType = self.commandType()
-        #print("SYMBOL", currentCommandType)
         if currentCommandType == "A_COMMAND":
             return command.strip().replace("@", "")
         elif currentCommandType == "L_COMMAND":
